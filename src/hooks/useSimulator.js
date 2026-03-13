@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { INITIAL_DB, scenarios } from "../data/scenarios";
 
+const NL = String.fromCharCode(10);
+
 export function useSimulator() {
   const [db, setDb]                             = useState(JSON.parse(JSON.stringify(INITIAL_DB)));
   const [activeLine, setActiveLine]             = useState(-1);
@@ -132,10 +134,7 @@ export function useSimulator() {
 
         const nextStep = scenario.steps[i + 1];
         if (nextStep && nextStep.type === "rollback" && nextStep.message) {
-          const combined = [step.message, nextStep.message].join("
-
-");
-          setErrorMsg(combined);
+          setErrorMsg(step.message + NL + NL + nextStep.message);
           i++;
         }
 
@@ -157,9 +156,7 @@ export function useSimulator() {
         addLog("[LOG] UNDO: All changes reverted to last consistent state");
         addTimeline({ tx: txIdRef.current, event: "ROLLBACK", status: "aborted" });
         if (step.message) {
-          setErrorMsg((prev) => [prev, step.message].join("
-
-"));
+          setErrorMsg((prev) => prev + NL + NL + step.message);
         }
         setExecutedLines((p) => [...p, i]);
       }
@@ -208,8 +205,7 @@ export function useSimulator() {
       }
 
       else if (step.type === "mediaFailure") {
-        setErrorMsg("MEDIA FAILURE DETECTED
-Database files corrupted");
+        setErrorMsg("MEDIA FAILURE DETECTED" + NL + "Database files corrupted");
         addLog("[LOG] MEDIA FAILURE: disk corruption detected");
         addTimeline({ tx: txIdRef.current, event: "MEDIA FAILURE", status: "crash" });
         setExecutedLines((p) => [...p, i]);
@@ -246,4 +242,4 @@ Database files corrupted");
     runScenario, resetAll,
     currentSQL: currentScenario ? scenarios[currentScenario].sql : [],
   };
-                                      }
+    }
